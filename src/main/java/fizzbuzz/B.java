@@ -7,20 +7,25 @@ public class B implements Runnable {
     public void run() {
         while (!isWorkDone){
             try {
-                lock.lock();
-                isNewNumber.await();
+                BARRIER2.await();
                 if (buzz(currentNumber)){
-                    System.out.println("buzz ");
-                    isNewNumberProcessed.signalAll();
-                } else {
-                    //isNewNumberNotDivided5.signalAll();
+
+                    currentNumberState |= (1 << 1);
+
                 }
-            } catch (InterruptedException e) {
+                BARRIER.await();
+                if (currentNumberState == 2){
+                    System.out.print("buzz ");
+                }
+                BARRIER1.await();
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             } finally {
-                lock.unlock();
+               // lock.unlock();
             }
         }
     }
-
+    public static boolean buzz(int number){
+        return number % 5 == 0;
+    }
 }

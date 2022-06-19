@@ -7,20 +7,26 @@ public class C implements Runnable {
     public void run() {
         while (!isWorkDone){
             try {
-                lock.lock();
-                isNewNumber.await();
+                BARRIER2.await();
                 if (fizzbuzz(currentNumber)){
-                    System.out.println("fizzbuzz ");
-                    isNewNumberProcessed.signalAll();
-                } else {
-                    isNewNumberNotDividedBy3Or5.signalAll();
+
+                    currentNumberState |= (1 << 0);
+                    currentNumberState |= (1 << 1);
+
                 }
-            } catch (InterruptedException e) {
+                BARRIER.await();
+                if (currentNumberState == 3){
+                    System.out.print("fizzbuzz ");
+                }
+                BARRIER1.await();
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             } finally {
-                lock.unlock();
+                //lock.unlock();
             }
         }
     }
-
+    public static boolean fizzbuzz(int number){
+        return number % 3 == 0 && number % 5 == 0;
+    }
 }

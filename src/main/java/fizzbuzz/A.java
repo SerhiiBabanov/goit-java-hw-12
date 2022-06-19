@@ -6,20 +6,26 @@ public class A implements Runnable {
     public void run() {
         while (!isWorkDone){
             try {
-                lock.lock();
-                isNewNumber.await();
+                BARRIER2.await();
                 if (fizz(currentNumber)){
-                    System.out.println("fizz ");
-                    isNewNumberProcessed.signalAll();
-                } else {
-                    //isNewNumberNotDivided3.signalAll();
+                    currentNumberState |= (1 << 0);
                 }
-            } catch (InterruptedException e) {
+
+                BARRIER.await();
+
+                if (currentNumberState == 1){
+                    System.out.print("fizz ");
+                }
+                BARRIER1.await();
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             } finally {
-                lock.unlock();
+               // lock.unlock();
             }
         }
+    }
+    public static boolean fizz(int number){
+        return number % 3 == 0;
     }
 
 

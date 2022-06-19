@@ -7,17 +7,24 @@ public class D implements Runnable {
     public void run() {
         while (!isWorkDone){
             try {
-                lock.lock();
-                isNewNumberNotDividedBy3Or5.await();
+                BARRIER2.await();
 
-                number(currentNumber);
-            } catch (InterruptedException e) {
+                BARRIER.await();
+
+                if (currentNumberState == 0){
+                    number(currentNumber);
+                }
+                BARRIER1.await();
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             } finally {
-                lock.unlock();
+               // lock.unlock();
             }
         }
     }
 
+    public static void number(int number){
+        System.out.print(number + " ");
 
+    }
 }
