@@ -1,32 +1,40 @@
 package fizzbuzz;
 
+import java.util.concurrent.BrokenBarrierException;
+
 import static fizzbuzz.Application.*;
 
 public class C implements Runnable {
     @Override
     public void run() {
-        while (!isWorkDone){
-            try {
-                BARRIER2.await();
-                if (fizzbuzz(currentNumber)){
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                //wait to new number to check
+                BARRIER_READY_TO_CHECK_NUMBER.await();
 
-                    currentNumberState |= (1 << 0);
-                    currentNumberState |= (1 << 1);
+                //check new number and set bit
+                fizzbuzz(currentNumber);
 
+                //wait to finish checking number by all four threads
+                BARRIER_READY_TO_PRINT_NUMBER.await();
+
+                //print number if bytes of currentNumberState = 0011;
+                if (currentNumberState == 3) {
+                    result.append(" ").append("fizzbuzz");
                 }
-                BARRIER.await();
-                if (currentNumberState == 3){
-                    System.out.print("fizzbuzz ");
-                }
-                BARRIER1.await();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                //lock.unlock();
+
+                //wait to all threads finish work with this number
+                BARRIER_READY_TO_NEXT_NUMBER.await();
             }
+        } catch (Exception e) {
+
         }
     }
-    public static boolean fizzbuzz(int number){
-        return number % 3 == 0 && number % 5 == 0;
+    //check number and set bites numbers 0 and 1 to 1 if n%3==0
+    private void fizzbuzz(int number) {
+        if (number % 3 == 0 && number % 5 == 0) {
+            currentNumberState |= (1 << 0);
+            currentNumberState |= (1 << 1);
+        }
     }
 }
